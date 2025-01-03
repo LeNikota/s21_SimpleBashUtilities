@@ -21,9 +21,12 @@ all: $(S21_CAT_BIN) $(S21_GREP_BIN)
 	./s21_cat -nbs test.txt
 	./s21_cat -nbse test.txt
 	./s21_cat -nbsE test.txt
-	./s21_cat -nbst test.txt
-	./s21_cat -nbsT  test.txt
-	./s21_cat -nbsv test.txt
+	./s21_cat -nbsEt test.txt
+	./s21_cat -nbsET test.txt
+	./s21_cat -nbsETv test.txt
+
+	./s21_cat test.txt test.txt
+	./s21_cat test.txt - -nbsET test.txt
 
 
 # Build s21_cat

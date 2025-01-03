@@ -69,7 +69,7 @@ void read_flags(int argc, char *argv[], Flags *flags) {
         break;
       case '?':
         fprintf(stderr, "Unknown option: %s\n", argv[optind - 1]);
-        exit(EXIT_FAILURE); //? Ask someone, is it propare way to terminate the program.
+        exit(EXIT_FAILURE); //? Ask someone, is it propare way to terminate the program on invalid input.
         break;
     }
   }
