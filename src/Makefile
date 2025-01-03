@@ -12,21 +12,21 @@ S21_GREP_BIN = s21_grep
 # Default target
 all: $(S21_CAT_BIN) $(S21_GREP_BIN)
  	#!!! DELETE THAT AUTO_TEST
-	./s21_cat --number
-	./s21_cat --number --squeeze-blank
-	./s21_cat --number-nonblank --number --squeeze-blank
-	./s21_cat -n test.txt
-	./s21_cat -b test.txt
-	./s21_cat -nb test.txt
-	./s21_cat -nbs test.txt
-	./s21_cat -nbse test.txt
-	./s21_cat -nbsE test.txt
-	./s21_cat -nbsEt test.txt
-	./s21_cat -nbsET test.txt
-	./s21_cat -nbsETv test.txt
+	# ./s21_cat --number
+	# ./s21_cat --number --squeeze-blank
+	# ./s21_cat --number-nonblank --number --squeeze-blank
+	# ./s21_cat -n test.txt
+	# ./s21_cat -b test.txt
+	# ./s21_cat -nb test.txt
+	# ./s21_cat -nbs test.txt
+	# ./s21_cat -nbse test.txt
+	# ./s21_cat -nbsE test.txt
+	# ./s21_cat -nbsEt test.txt
+	# ./s21_cat -nbsET test.txt
+	# ./s21_cat -nbsETv test.txt
 
-	./s21_cat test.txt test.txt
-	./s21_cat test.txt - -nbsET test.txt
+	# ./s21_cat test.txt test.txt
+	# ./s21_cat test.txt - -nbsET test.txt
 
 
 # Build s21_cat
