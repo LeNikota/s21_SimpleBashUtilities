@@ -10,7 +10,7 @@ S21_CAT_BIN = s21_cat
 S21_GREP_BIN = s21_grep
 
 # Default target
-all: $(S21_CAT_BIN) $(S21_GREP_BIN)
+all: format $(S21_CAT_BIN) $(S21_GREP_BIN)
  	#!!! DELETE THAT AUTO_TEST
 	# ./s21_cat --number
 	# ./s21_cat --number --squeeze-blank
@@ -45,6 +45,7 @@ clean:
 .PHONY: all clean
 
 
+### Intensive remanence ###
 # # Utilities
 # clean:
 # 	rm -rf *.o
@@ -52,8 +53,8 @@ clean:
 
 # rebuild: clean all
 
-# format:
+format:
 # 	clear
-# 	find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs clang-format -i
+	find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs clang-format -i
 # 	find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs cppcheck --enable=all --suppress=missingIncludeSystem
 # #	valgrind --tool=memcheck --leak-check=yes  ./build/graph

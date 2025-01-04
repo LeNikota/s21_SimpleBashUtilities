@@ -25,12 +25,6 @@ int main(int argc, char *argv[]) {
   read_flags(argc, argv, &flags);
   set_table(table);
 
-  // if (flags.number_nonblank)
-
-  //   if (flags.number)
-
-  //     if (flags.squeeze_blank)
-
   if (flags.show_ends) table['\n'] = "$\n";
   if (flags.show_tabs) table['\t'] = "^I";
   if (flags.show_nonprinting) set_table_nonprinting(table);
@@ -158,11 +152,22 @@ void set_table_nonprinting(const char *table[static 256]) {
 
 void cat_file(FILE *file, Flags flags, const char *table[static 256]) {
   int c = 0;
-  int last;
-  (void)last;
+  int black_count = 1;
   (void)flags;
 
   while (fread(&c, sizeof(char), 1, file) > 0) {
+    // if (flags.number_nonblank)
+
+    //   if (flags.number)
+
+    // Skip blank lines
+    if (c == '\n') {
+      black_count++;
+      if (flags.squeeze_blank && black_count > 2) continue;
+    } else {
+      black_count = 0;
+    }
+
     printf("%s", table[c]);
   }
 }
