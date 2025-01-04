@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +17,7 @@ typedef struct Flags {
 void read_flags(int argc, char *argv[], Flags *flags);
 void set_table(const char *table[static 256]);
 void set_table_nonprinting(const char *table[static 256]);
+void cat(int argc, char *argv[], Flags flags, const char *table[static 256]);
 void cat_file(FILE *file, Flags flags, const char *table[static 256]);
 
 int main(int argc, char *argv[]) {
@@ -29,8 +31,7 @@ int main(int argc, char *argv[]) {
   if (flags.show_tabs) table['\t'] = "^I";
   if (flags.show_nonprinting) set_table_nonprinting(table);
 
-  cat_file(stdin, flags, table);
-  // free(file);
+  cat(argc, argv, flags, table);
 
   return 0;
 }
@@ -150,6 +151,24 @@ void set_table_nonprinting(const char *table[static 256]) {
   memcpy(&table['~' + 1], sample3, sizeof(sample3));
 }
 
+void cat(int argc, char *argv[], Flags flags, const char *table[static 256]) {
+  for (int i = 1; i < argc; i++) {
+    if (argv[i][0] == '-') continue;
+
+    FILE *file = fopen(argv[i], "rb");
+
+    if (file == NULL) {
+      fprintf(stderr, "%s", argv[0]);
+      perror(argv[i]);
+      continue;
+    }
+
+    cat_file(file, flags, table);
+
+    fclose(file);
+  }
+}
+
 void cat_file(FILE *file, Flags flags, const char *table[static 256]) {
   int c = 0;
   int last = '\n';
@@ -174,14 +193,17 @@ void cat_file(FILE *file, Flags flags, const char *table[static 256]) {
         }
         // All
       } else if (flags.number) {
-        printf("%6i  ", ++line_number);
+        printf("%6i\t", ++line_number);
       }
 
     } else {
       newline_count = 0;
     }
 
-    printf("%s", table[c]);
+    if (!*table[c])
+      printf("%c", '\0');
+    else
+      printf("%s", table[c]);
     last = c;
   }
 }
