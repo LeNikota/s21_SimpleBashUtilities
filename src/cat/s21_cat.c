@@ -80,7 +80,7 @@ void read_flags(int argc, char *argv[], Flags *flags) {
         flags->show_nonprinting = 1;
         break;
       case '?':
-        fprintf(stderr, "Unknown option: %s\n", argv[optind - 1]);
+        fprintf(stderr, "%s", argv[optind - 1]);
         exit(EXIT_FAILURE);  //? Ask someone, is it propare way to terminate the
                              // program on invalid input.
         break;
@@ -189,7 +189,7 @@ void cat_file(FILE *file, Flags flags, const char *table[static 256]) {
       if (flags.number_nonblank) {
         // Nonblank
         if (c != '\n') {
-          printf("%6i  ", ++line_number);
+          printf("%6i\t", ++line_number);
         }
         // All
       } else if (flags.number) {

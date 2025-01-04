@@ -11,22 +11,6 @@ S21_GREP_BIN = s21_grep
 
 # Default target
 all: format $(S21_CAT_BIN) $(S21_GREP_BIN)
- 	#!!! DELETE THAT AUTO_TEST
-	# ./s21_cat --number
-	# ./s21_cat --number --squeeze-blank
-	# ./s21_cat --number-nonblank --number --squeeze-blank
-	# ./s21_cat -n test.txt
-	# ./s21_cat -b test.txt
-	# ./s21_cat -nb test.txt
-	# ./s21_cat -nbs test.txt
-	# ./s21_cat -nbse test.txt
-	# ./s21_cat -nbsE test.txt
-	# ./s21_cat -nbsEt test.txt
-	# ./s21_cat -nbsET test.txt
-	./s21_cat -nbsETv test.txt
-
-	# ./s21_cat test.txt test.txt
-	# ./s21_cat test.txt - -nbsET test.txt
 
 
 # Build s21_cat
@@ -58,3 +42,8 @@ format:
 	find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs clang-format -i
 # 	find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs cppcheck --enable=all --suppress=missingIncludeSystem
 # #	valgrind --tool=memcheck --leak-check=yes  ./build/graph
+
+
+### Other ###
+# ./s21_cat -nbsETv test.txt
+# clear && flags=-n && files=test.txt && cat $flags $files > original.txt && make && ./s21_cat $files $flags > mine.txt && diff original.txt mine.txt
