@@ -152,22 +152,36 @@ void set_table_nonprinting(const char *table[static 256]) {
 
 void cat_file(FILE *file, Flags flags, const char *table[static 256]) {
   int c = 0;
-  int black_count = 1;
+  int last = '\n';
+  int newline_count = 0;
+  int line_number = 0;
   (void)flags;
 
   while (fread(&c, sizeof(char), 1, file) > 0) {
     // if (flags.number_nonblank)
 
-    //   if (flags.number)
+    if (last == '\n') {
+      newline_count++;
 
-    // Skip blank lines
-    if (c == '\n') {
-      black_count++;
-      if (flags.squeeze_blank && black_count > 2) continue;
+      // Skip blank lines
+      if (flags.squeeze_blank && newline_count > 1 && c == '\n') continue;
+
+      // Number lines
+      if (flags.number_nonblank) {
+        // Nonblank
+        if (c != '\n') {
+          printf("%6i  ", ++line_number);
+        }
+        // All
+      } else if (flags.number) {
+        printf("%6i  ", ++line_number);
+      }
+
     } else {
-      black_count = 0;
+      newline_count = 0;
     }
 
     printf("%s", table[c]);
+    last = c;
   }
 }
