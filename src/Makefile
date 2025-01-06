@@ -32,8 +32,9 @@ clean:
 ### Intensive remanence ###
 # # Utilities
 # clean:
-# 	rm -rf *.o
+#   rm -rf *.o
 # 	rm -rf ../build/*
+#	rm -rf s21_cat s21_grep
 
 # rebuild: clean all
 
