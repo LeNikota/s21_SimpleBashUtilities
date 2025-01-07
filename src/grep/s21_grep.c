@@ -75,6 +75,11 @@ Flags read_flags(int argc, char *argv[]) {
         break;
     }
   }
+
+  if (flags.pattern == NULL) {
+    flags.pattern = argv[optind];
+    optind++;
+  }
   return flags;
 }
 
@@ -84,15 +89,11 @@ void grep(int argc, char *argv[], Flags flags) {
   regex_t regex;
   int file_count = 0;
 
-  // initial pattern search
-  for (; pattern != end && pattern[0][0] == '-'; pattern++)
-    ;
-
-  if (pattern == end) {
+  if (flags.pattern == NULL) {
     fprintf(stderr, "No pattern provided\n");
     exit(EXIT_FAILURE);
   }
-  if (regcomp(&regex, *pattern, flags.regexp_flags)) {
+  if (regcomp(&regex, flags.pattern, flags.regexp_flags)) {
     fprintf(stderr, "Failed to compile regular excretion");
     exit(EXIT_FAILURE);
   }
