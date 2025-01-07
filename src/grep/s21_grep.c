@@ -8,101 +8,66 @@
 #include <unistd.h>
 
 typedef struct Flags {
-  int ignore_case;          // -i, ignore uppercase vs. lowercase.
+  // -e, POSIX Extended Regular Expressions
+  // -i, ignore uppercase vs. lowercase.
+  int regexp_flags;
   int invert_match;         // -v, invert match.
   int count_only_matching;  // -c, output count of matching lines only
   int list_files;           // -l, output matching files only.
-  int number;  // -n, precede each matching line with a line number.
+  int number_line;          // -n, precede each matching line with a line
+                            // number.
   int suppress_file_names;  // -h,output matching lines without preceding them
                             // by file names
   int suppress_errors;      // -s, suppress error messages about nonexistent or
                             // unreadable files.
   int output_only_matches;  // -o, output count of matching lines only
-  // char *pattern;           // -e Pattern to search for
+  // char *pattern;         // -e Pattern to search for
 } Flags;
 
-// void read_flags(int argc, char *argv[], Flags *flags);
+Flags read_flags(int argc, char *argv[]);
 void grep(int argc, char *argv[], Flags flags);
 void grep_file(FILE *file, Flags flags, regex_t *preg);
 
 int main(int argc, char *argv[]) {
-  Flags flags = {};
-
+  Flags flags = read_flags(argc, argv);
   // read_flags(argc, argv, &flags);
   grep(argc, argv, flags);
 
   return 0;
 }
 
-// void read_flags(int argc, char *argv[], Flags *flags) {
-//     int opt;
+Flags read_flags(int argc, char *argv[]) {
+  Flags flags = {0, 0, 0, 0, 0, 0, 0, 0};
+  int opt;
 
-//     flags->number_nonblank = 0;
-//     flags->show_ends = 0;
-//     flags->number = 0;
-//     flags->squeeze_blank = 0;
-//     flags->show_tabs = 0;
-//     flags->show_nonprinting = 0;
-//     flags->ignore_case = 0;
-//     flags->invert_match = 0;
-//     flags->count = 0;
-//     flags->list_files = 0;
-//     flags->suppress_errors = 0;
-//     flags->output_only_matches = 0;
-//     flags->pattern = NULL;
-
-//     while ((opt = getopt(argc, argv, "beEnstTvicvlso", long_options, NULL))
-//     != -1) {
-//         switch (opt) {
-//             case 'b':
-//                 flags->number_nonblank = 1;
-//                 break;
-//             case 'e':
-//                 flags->pattern = argv[optind++];
-//                 break;
-//             case 'i':
-//                 flags->ignore_case = 1;
-//                 break;
-//             case 'v':
-//                 flags->invert_match = 1;
-//                 break;
-//             case 'c':
-//                 flags->count = 1;
-//                 break;
-//                         case 'l':
-//                 flags->list_files = 1;
-//                 break;
-//             case 's':
-//                 flags->suppress_errors = 1;
-//                 break;
-//             case 'o':
-//                 flags->output_only_matches = 1;
-//                 break;
-//             case 'E':
-//                 flags->show_ends = 1;
-//                 break;
-//             case 'n':
-//                 flags->number = 1;
-//                 break;
-//             case 's':
-//                 flags->squeeze_blank = 1;
-//                 break;
-//             case 't':
-//                 flags->show_tabs = 1;
-//                 break;
-//             case 'T':
-//                 flags->show_tabs = 1;
-//                 break;
-//             case 'v':
-//                 flags->show_nonprinting = 1;
-//                 break;
-//             case '?':
-//                 fprintf(stderr, "Invalid option: %s\n", argv[optind - 1]);
-//                 exit(EXIT_FAILURE);
-//                 break;
-//         }
-//     }
-// }
+  while ((opt = getopt(argc, argv, "eiv")) != -1) {
+    switch (opt) {
+      case 'e':
+        flags.regexp_flags |= REG_EXTENDED;
+        break;
+      case 'i':
+        flags.regexp_flags |= REG_ICASE;
+        break;
+      case 'v':
+        flags.invert_match = 1;
+        break;
+      case 'c':
+        flags.count_only_matching = 1;
+        break;
+      case 'l':
+        flags.list_files = 1;
+        break;
+      case 'n':
+        flags.number_line = 1;
+        break;
+      case '?':
+        fprintf(stderr, "Invalid option: %s\n", argv[optind - 1]);
+        exit(EXIT_FAILURE);
+        break;
+    }
+  }
+  return flags;
+}
 
 void grep(int argc, char *argv[], Flags flags) {
   char **pattern = &argv[1];
@@ -112,16 +77,18 @@ void grep(int argc, char *argv[], Flags flags) {
 
   for (; pattern != end && pattern[0][0] == '-'; pattern++)
     ;
+
   if (pattern == end) {
     fprintf(stderr, "No pattern provided\n");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
-  if (regcomp(preg, *pattern, 0)) {
+  if (regcomp(preg, *pattern, flags.regexp_flags)) {
     fprintf(stderr, "Failed to compile regular excretion");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
-  for (char **filename = pattern + 1; filename != end; filename++) {
+  for (char **filename = /*pattern + 1*/ &argv[1]; filename != end;
+       filename++) {
     if (**filename == '-') continue;
 
     FILE *file = fopen(*filename, "rb");
