@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <errno.h>
 #include <getopt.h>
+#include <limits.h>
 #include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,10 +110,12 @@ void grep_file(FILE *file, Flags flags, regex_t *preg) {
   size_t length = 0;
   ssize_t read;
   regmatch_t match;
-  (void)flags;
+  int is_match = 0;
+
+  if (flags.invert_match) is_match = REG_NOMATCH;
 
   while ((read = getline(&line, &length, file)) > 0) {
-    if (!regexec(preg, line, 1, &match, 0)) {
+    if (regexec(preg, line, 1, &match, 0) == is_match) {
       printf("%s", line);
     }
   }
