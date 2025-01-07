@@ -41,7 +41,7 @@ clean:
 format:
 # 	clear
 	find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs clang-format -i
-# 	find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs cppcheck --enable=all --suppress=missingIncludeSystem
+#! use this one	# find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs cppcheck --enable=all --suppress=missingIncludeSystem
 # #	valgrind --tool=memcheck --leak-check=yes  ./build/graph
 
 
