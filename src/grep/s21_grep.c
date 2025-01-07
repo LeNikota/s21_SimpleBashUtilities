@@ -27,7 +27,7 @@ typedef struct Flags {
 
 Flags read_flags(int argc, char *argv[]);
 void grep(int argc, char *argv[], Flags flags);
-void grep_file(FILE *file, char *filename, Flags flags, regex_t *preg);
+void grep_file(FILE *file, Flags flags, regex_t *regex, char *filename);
 
 int main(int argc, char *argv[]) {
   Flags flags = read_flags(argc, argv);
@@ -75,9 +75,10 @@ Flags read_flags(int argc, char *argv[]) {
 void grep(int argc, char *argv[], Flags flags) {
   char **pattern = &argv[1];
   char **end = &argv[argc];
-  regex_t preg_storage;
-  regex_t *preg = &preg_storage;
+  regex_t regex;
+  int file_count = 0;
 
+  // initial pattern search
   for (; pattern != end && pattern[0][0] == '-'; pattern++)
     ;
 
@@ -85,7 +86,7 @@ void grep(int argc, char *argv[], Flags flags) {
     fprintf(stderr, "No pattern provided\n");
     exit(EXIT_FAILURE);
   }
-  if (regcomp(preg, *pattern, flags.regexp_flags)) {
+  if (regcomp(&regex, *pattern, flags.regexp_flags)) {
     fprintf(stderr, "Failed to compile regular excretion");
     exit(EXIT_FAILURE);
   }
@@ -93,48 +94,65 @@ void grep(int argc, char *argv[], Flags flags) {
   for (char **filename = pattern + 1 /*&argv[1]*/; filename != end;
        filename++) {
     if (**filename == '-') continue;
+    if (++file_count > 1) break;
+  }
+
+  for (char **filename = pattern + 1 /*&argv[1]*/; filename != end;
+       filename++) {
+    if (**filename == '-') continue;
 
     FILE *file = fopen(*filename, "rb");
-
     if (file == NULL) {
       fprintf(stderr, "%s ", argv[0]);
       perror(*filename);
       continue;
     }
 
-    grep_file(file, *filename, flags, preg);
+    if (file_count == 1) {
+      grep_file(file, flags, &regex, "");
+    } else {
+      char *new_filename = malloc(strlen(*filename) + 2);
+      strcpy(new_filename, *filename);
+      strcat(new_filename, ":");
+
+      grep_file(file, flags, &regex, new_filename);
+
+      free(new_filename);
+    }
 
     fclose(file);
   }
+
+  regfree(&regex);
 }
 
-void grep_file(FILE *file, char *filename, Flags flags, regex_t *preg) {
+void grep_file(FILE *file, Flags flags, regex_t *regex, char *filename) {
   char *line = NULL;
   size_t length = 0;
   ssize_t read;
   regmatch_t match;
   int is_match = 0;
   int line_count = 0;
-  (void)filename;
 
   if (flags.invert_match) is_match = REG_NOMATCH;
 
   if (flags.count_matching_lines) {
     while ((read = getline(&line, &length, file)) > 0) {
-      if (regexec(preg, line, 1, &match, 0) == is_match) {
+      if (regexec(regex, line, 1, &match, 0) == is_match) {
         line_count++;
       }
     }
-    printf("%d", line_count);
+
+    printf("%s%d\n", filename, line_count);
   } else {
     if (flags.invert_match && flags.output_only_matched_part)  // aka -vo
       return;
     while ((read = getline(&line, &length, file)) > 0) {
-      if (regexec(preg, line, 1, &match, 0) == is_match) {
+      if (regexec(regex, line, 1, &match, 0) == is_match) {
         if (flags.output_only_matched_part) {
           printf("%.*s\n", match.rm_eo - match.rm_so, line + match.rm_so);
           char *remaining = line + match.rm_eo;
-          while (!regexec(preg, remaining, 1, &match, 0)) {
+          while (!regexec(regex, remaining, 1, &match, 0)) {
             printf("%.*s\n", match.rm_eo - match.rm_so,
                    remaining + match.rm_so);
             remaining += match.rm_eo;
