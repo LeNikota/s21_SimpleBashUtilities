@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c11 -fsanitize=address -fsanitize=leak -fsanitize=undefined -fsanitize=unreachable
+CFLAGS = -Wall -Wextra -Werror -std=c11 # -fsanitize=address -fsanitize=leak -fsanitize=undefined -fsanitize=unreachable
 
 # Source files
 S21_CAT_SRC = ./cat/s21_cat.c

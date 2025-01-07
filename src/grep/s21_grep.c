@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <limits.h>
+#include <math.h>
 #include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +16,7 @@ typedef struct Flags {
   int invert_match;          // -v, invert match.
   int count_matching_lines;  // -c, output count of matching lines only
   int list_files;            // -l, output matching files only.
-  int number_line;           // -n, precede each matching line with a line
+  int number_lines;          // -n, precede each matching line with a line
                              // number.
   int suppress_file_names;   // -h,output matching lines without preceding them
                              // by file names
@@ -28,6 +29,7 @@ typedef struct Flags {
 Flags read_flags(int argc, char *argv[]);
 void grep(int argc, char *argv[], Flags flags);
 void grep_file(FILE *file, Flags flags, regex_t *regex, char *filename);
+char *concat(char *str1, const char *str2);
 
 int main(int argc, char *argv[]) {
   Flags flags = read_flags(argc, argv);
@@ -40,7 +42,7 @@ Flags read_flags(int argc, char *argv[]) {
   Flags flags = {0, 0, 0, 0, 0, 0, 0, 0};
   int opt;
 
-  while ((opt = getopt(argc, argv, "eivco")) != -1) {
+  while ((opt = getopt(argc, argv, "eivcno")) != -1) {
     switch (opt) {
       case 'e':
         flags.regexp_flags |= REG_EXTENDED;
@@ -58,7 +60,7 @@ Flags read_flags(int argc, char *argv[]) {
         flags.list_files = 1;
         break;
       case 'n':
-        flags.number_line = 1;
+        flags.number_lines = 1;
         break;
       case 'o':
         flags.output_only_matched_part = 1;
@@ -111,9 +113,7 @@ void grep(int argc, char *argv[], Flags flags) {
     if (file_count == 1) {
       grep_file(file, flags, &regex, "");
     } else {
-      char *new_filename = malloc(strlen(*filename) + 2);
-      strcpy(new_filename, *filename);
-      strcat(new_filename, ":");
+      char *new_filename = concat(*filename, ":");
 
       grep_file(file, flags, &regex, new_filename);
 
@@ -133,6 +133,10 @@ void grep_file(FILE *file, Flags flags, regex_t *regex, char *filename) {
   regmatch_t match;
   int is_match = 0;
   int line_count = 0;
+  int line_number = 0;
+  // log(2147483647) + 1 digit + : + \0
+  char *line_number_str = malloc(log10(INT_MAX) + 3);
+  strcpy(line_number_str, "");
 
   if (flags.invert_match) is_match = REG_NOMATCH;
 
@@ -144,24 +148,38 @@ void grep_file(FILE *file, Flags flags, regex_t *regex, char *filename) {
     }
 
     printf("%s%d\n", filename, line_count);
-  } else {
-    if (flags.invert_match && flags.output_only_matched_part)  // aka -vo
-      return;
+  } else if (!(flags.invert_match &&
+               flags.output_only_matched_part)) {  // aka -vo, then do nothing
     while ((read = getline(&line, &length, file)) > 0) {
+      if (flags.number_lines) {
+        line_number++;
+        sprintf(line_number_str, "%d:", line_number);
+      }
+
       if (regexec(regex, line, 1, &match, 0) == is_match) {
         if (flags.output_only_matched_part) {
-          printf("%.*s\n", match.rm_eo - match.rm_so, line + match.rm_so);
+          printf("%s%s%.*s\n", filename, line_number_str,
+                 match.rm_eo - match.rm_so, line + match.rm_so);
           char *remaining = line + match.rm_eo;
           while (!regexec(regex, remaining, 1, &match, 0)) {
-            printf("%.*s\n", match.rm_eo - match.rm_so,
-                   remaining + match.rm_so);
+            printf("%s%s%.*s\n", filename, line_number_str,
+                   match.rm_eo - match.rm_so, remaining + match.rm_so);
             remaining += match.rm_eo;
           }
         } else
-          printf("%s", line);
+          printf("%s%s%s", filename, line_number_str, line);
       }
     }
   }
 
   free(line);
+  free(line_number_str);
+}
+
+char *concat(char *str1, const char *str2) {
+  char *result = malloc(strlen(str1) + strlen(str2) + 1);
+  strcpy(result, str1);
+  strcat(result, str2);
+
+  return result;
 }
