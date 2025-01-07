@@ -30,7 +30,6 @@ void grep_file(FILE *file, Flags flags, regex_t *preg);
 
 int main(int argc, char *argv[]) {
   Flags flags = read_flags(argc, argv);
-  // read_flags(argc, argv, &flags);
   grep(argc, argv, flags);
 
   return 0;
