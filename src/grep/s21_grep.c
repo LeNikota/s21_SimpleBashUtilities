@@ -10,13 +10,13 @@
 #include <unistd.h>
 
 typedef struct Flags {
-  // -e, POSIX Extended Regular Expressions
+  char *pattern;  // -e
   // -i, ignore uppercase vs. lowercase.
   int regexp_flags;
   int invert_match;          // -v, invert match.
   int count_matching_lines;  // -c, output count of matching lines only
   int list_files;            // -l, output matching files only.
-  int number_lines;          // -n, precede each matching line with a line
+  int lines_number;          // -n, precede each matching line with a line
                              // number.
   int suppress_file_names;   // -h,output matching lines without preceding them
                              // by file names
@@ -39,13 +39,14 @@ int main(int argc, char *argv[]) {
 }
 
 Flags read_flags(int argc, char *argv[]) {
-  Flags flags = {0, 0, 0, 0, 0, 0, 0, 0};
+  Flags flags = {NULL, 0, 0, 0, 0, 0, 0, 0, 0};
   int opt;
 
-  while ((opt = getopt(argc, argv, "eivcno")) != -1) {
+  while ((opt = getopt_long(argc, argv, "e:ivcnsf:o", 0, 0)) != -1) {
     switch (opt) {
       case 'e':
         flags.regexp_flags |= REG_EXTENDED;
+        flags.pattern = optarg;
         break;
       case 'i':
         flags.regexp_flags |= REG_ICASE;
@@ -60,7 +61,10 @@ Flags read_flags(int argc, char *argv[]) {
         flags.list_files = 1;
         break;
       case 'n':
-        flags.number_lines = 1;
+        flags.lines_number = 1;
+        break;
+      case 's':
+        flags.suppress_errors = 1;
         break;
       case 'o':
         flags.output_only_matched_part = 1;
@@ -105,8 +109,7 @@ void grep(int argc, char *argv[], Flags flags) {
 
     FILE *file = fopen(*filename, "rb");
     if (file == NULL) {
-      fprintf(stderr, "%s ", argv[0]);
-      perror(*filename);
+      if (!flags.suppress_errors) perror(*filename);
       continue;
     }
 
@@ -151,7 +154,7 @@ void grep_file(FILE *file, Flags flags, regex_t *regex, char *filename) {
   } else if (!(flags.invert_match &&
                flags.output_only_matched_part)) {  // aka -vo, then do nothing
     while ((read = getline(&line, &length, file)) > 0) {
-      if (flags.number_lines) {
+      if (flags.lines_number) {
         line_number++;
         sprintf(line_number_str, "%d:", line_number);
       }
