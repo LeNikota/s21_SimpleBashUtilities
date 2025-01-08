@@ -22,6 +22,7 @@ typedef struct Flags {
                             // by file names
   int suppress_errors;      // -s, suppress error messages about nonexistent or
                             // unreadable files.
+  int pattern_from_file;    // -f, file	Take regexes from a file.
   int output_matched_part;  // -o, Output the matched parts of a matching
                             // line.
 } Flags;
@@ -36,6 +37,7 @@ void output_matched_lines_count(FILE *file, Flags flags, regex_t *regex,
                                 char *filename);
 void list_file_names(FILE *file, Flags flags, regex_t *regex, char *filename);
 void add_pattern(Flags *flags, char *pattern);
+void add_pattern_from_file(Flags *flags, char *filename);
 char *concat(char *str1, const char *str2);
 void *xmalloc(size_t size);
 void *xrealloc(void *ptr, size_t new_size);
@@ -49,13 +51,14 @@ int main(int argc, char *argv[]) {
 }
 
 Flags read_flags(int argc, char *argv[]) {
-  Flags flags = {NULL, 0, 0, 0, 0, 0, 0, 0, 0};
+  Flags flags = {NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int opt;
+
+  flags.regexp_flags |= REG_EXTENDED;
 
   while ((opt = getopt(argc, argv, "e:ivcnshlf:o")) != -1) {
     switch (opt) {
       case 'e':
-        flags.regexp_flags |= REG_EXTENDED;
         add_pattern(&flags, optarg);
         break;
       case 'i':
@@ -73,11 +76,15 @@ Flags read_flags(int argc, char *argv[]) {
       case 'n':
         flags.lines_number = 1;
         break;
+      case 'h':
+        flags.suppress_file_names = 1;
+        break;
       case 's':
         flags.suppress_errors = 1;
         break;
-      case 'h':
-        flags.suppress_file_names = 1;
+      case 'f':
+        flags.pattern_from_file = 1;
+        add_pattern_from_file(&flags, optarg);
         break;
       case 'o':
         flags.output_matched_part = 1;
@@ -90,7 +97,7 @@ Flags read_flags(int argc, char *argv[]) {
   }
 
   // grep [OPTION...] ->PATTERNS<- [FILE...]
-  if (flags.pattern == NULL) {
+  if (flags.pattern == NULL && !flags.pattern_from_file) {
     add_pattern(&flags, argv[optind]);
     optind++;
   }
@@ -120,7 +127,7 @@ void grep(int argc, char *argv[], Flags flags) {
   for (char **filename = start; filename != end; filename++) {
     FILE *file = fopen(*filename, "rb");
     if (file == NULL) {
-      if (!(flags.suppress_errors || flags.list_file_names)) perror(*filename);
+      if (!flags.suppress_errors) perror(*filename);
       continue;
     }
 
@@ -260,6 +267,27 @@ void add_pattern(Flags *flags, char *pattern) {
   }
 }
 
+void add_pattern_from_file(Flags *flags, char *filename) {
+  char *line = NULL;
+  size_t length = 0;
+  ssize_t read;
+
+  FILE *file = fopen(filename, "rb");
+  if (file == NULL) {
+    if (!flags->suppress_errors) perror(filename);
+  }
+
+  while ((read = getline(&line, &length, file)) > 0) {
+    if (line[read - 1] == '\n') line[read - 1] = '\0';
+
+    add_pattern(flags, line);
+  }
+
+  fclose(file);
+  free(line);
+}
+
+// utilities
 char *concat(char *str1, const char *str2) {
   char *result = xmalloc(strlen(str1) + strlen(str2) + 1);
 
