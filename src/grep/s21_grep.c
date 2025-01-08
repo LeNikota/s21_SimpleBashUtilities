@@ -39,6 +39,7 @@ char *concat(char *str1, const char *str2);
 
 int main(int argc, char *argv[]) {
   Flags flags = read_flags(argc, argv);
+
   grep(argc, argv, flags);
 
   return 0;
@@ -95,6 +96,11 @@ Flags read_flags(int argc, char *argv[]) {
 }
 
 void grep(int argc, char *argv[], Flags flags) {
+  // aka -vo, then do nothing
+  if (flags.output_matched_part && flags.invert_match)
+    // aka -vol, then continue
+    if (!flags.list_file_names) return;
+
   char **pattern = &argv[1];
   char **end = &argv[argc];
   regex_t regex;
@@ -132,8 +138,6 @@ void grep(int argc, char *argv[], Flags flags) {
 
     if (flags.list_file_names) {
       list_file_names(file, flags, &regex, *filename);
-    } else if (flags.output_matched_part && flags.invert_match) {
-      // aka -vo, then do nothing
     } else if (flags.output_matched_part) {
       output_matched_part(file, flags, &regex, new_filename);
     } else if (flags.matched_lines_count) {
