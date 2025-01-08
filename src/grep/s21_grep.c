@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 }
 
 Flags read_flags(int argc, char *argv[]) {
-  Flags flags = {NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  Flags flags = {0};
   int opt;
 
   flags.regexp_flags |= REG_EXTENDED;
@@ -185,31 +185,24 @@ void output_matched_part(FILE *file, Flags flags, regex_t *regex,
                          char *filename) {
   char *line = NULL;
   size_t length = 0;
-  ssize_t read;
   regmatch_t match;
   int line_number = 0;
   // For line numbering, log(2147483647) + 1 digit + : + \0
   char *line_number_str = malloc(log10(INT_MAX) + 3);
   strcpy(line_number_str, "");
 
-  while ((read = getline(&line, &length, file)) > 0) {
+  while (getline(&line, &length, file) > 0) {
     if (flags.lines_number) {
       line_number++;
       sprintf(line_number_str, "%d:", line_number);
     }
 
-    if (!regexec(regex, line, 1, &match, 0)) {
+    char *remaining = line;
+    while (!regexec(regex, remaining, 1, &match, 0)) {
       printf("%s%s%.*s\n", filename, line_number_str, match.rm_eo - match.rm_so,
-             line + match.rm_so);
+             remaining + match.rm_so);
 
-      char *remaining = line + match.rm_eo;
-
-      while (!regexec(regex, remaining, 1, &match, 0)) {
-        printf("%s%s%.*s\n", filename, line_number_str,
-               match.rm_eo - match.rm_so, remaining + match.rm_so);
-
-        remaining += match.rm_eo;
-      }
+      remaining += match.rm_eo;
     }
   }
 
