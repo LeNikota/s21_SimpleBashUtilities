@@ -132,7 +132,7 @@ void grep(int argc, char *argv[], Flags flags) {
     }
 
     char *new_filename = concat("", "");
-    if (file_count > 1) {
+    if (file_count > 1 && !flags.suppress_file_names) {
       new_filename = concat(*filename, ":");
     }
 
