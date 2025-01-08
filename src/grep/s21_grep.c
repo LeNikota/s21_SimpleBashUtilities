@@ -15,7 +15,7 @@ typedef struct Flags {
   int regexp_flags;
   int invert_match;          // -v, invert match.
   int count_matching_lines;  // -c, output count of matching lines only
-  int list_files;            // -l, output matching files only.
+  int list_file_names;       // -l, output matching files name only.
   int lines_number;          // -n, precede each matching line with a line
                              // number.
   int suppress_file_names;   // -h,output matching lines without preceding them
@@ -29,6 +29,8 @@ typedef struct Flags {
 Flags read_flags(int argc, char *argv[]);
 void grep(int argc, char *argv[], Flags flags);
 void grep_file(FILE *file, Flags flags, regex_t *regex, char *filename);
+void grep_list_file_names(FILE *file, Flags flags, regex_t *regex,
+                          char *filename);
 char *concat(char *str1, const char *str2);
 
 int main(int argc, char *argv[]) {
@@ -42,7 +44,7 @@ Flags read_flags(int argc, char *argv[]) {
   Flags flags = {NULL, 0, 0, 0, 0, 0, 0, 0, 0};
   int opt;
 
-  while ((opt = getopt_long(argc, argv, "e:ivcnsf:o", 0, 0)) != -1) {
+  while ((opt = getopt(argc, argv, "e:ivcnshlf:o")) != -1) {
     switch (opt) {
       case 'e':
         flags.regexp_flags |= REG_EXTENDED;
@@ -58,13 +60,16 @@ Flags read_flags(int argc, char *argv[]) {
         flags.count_matching_lines = 1;
         break;
       case 'l':
-        flags.list_files = 1;
+        flags.list_file_names = 1;
         break;
       case 'n':
         flags.lines_number = 1;
         break;
       case 's':
         flags.suppress_errors = 1;
+        break;
+      case 'h':
+        flags.suppress_file_names = 1;
         break;
       case 'o':
         flags.output_only_matched_part = 1;
@@ -110,11 +115,13 @@ void grep(int argc, char *argv[], Flags flags) {
 
     FILE *file = fopen(*filename, "rb");
     if (file == NULL) {
-      if (!flags.suppress_errors) perror(*filename);
+      if (!(flags.suppress_errors || flags.list_file_names)) perror(*filename);
       continue;
     }
 
-    if (file_count == 1) {
+    if (flags.list_file_names) {
+      grep_list_file_names(file, flags, &regex, *filename);
+    } else if (file_count == 1) {
       grep_file(file, flags, &regex, "");
     } else {
       char *new_filename = concat(*filename, ":");
@@ -178,6 +185,26 @@ void grep_file(FILE *file, Flags flags, regex_t *regex, char *filename) {
 
   free(line);
   free(line_number_str);
+}
+
+void grep_list_file_names(FILE *file, Flags flags, regex_t *regex,
+                          char *filename) {
+  char *line = NULL;
+  size_t length = 0;
+  ssize_t read;
+  regmatch_t match;
+  int is_match = 0;
+
+  if (flags.invert_match) is_match = REG_NOMATCH;
+
+  while ((read = getline(&line, &length, file)) > 0) {
+    if (regexec(regex, line, 1, &match, 0) == is_match) {
+      printf("%s\n", filename);
+      break;
+    }
+  }
+
+  free(line);
 }
 
 char *concat(char *str1, const char *str2) {
