@@ -35,7 +35,10 @@ void output_matched_part(FILE *file, Flags flags, regex_t *regex,
 void output_matched_lines_count(FILE *file, Flags flags, regex_t *regex,
                                 char *filename);
 void list_file_names(FILE *file, Flags flags, regex_t *regex, char *filename);
+void add_pattern(Flags *flags, char *pattern);
 char *concat(char *str1, const char *str2);
+void *xmalloc(size_t size);
+void *xrealloc(void *ptr, size_t new_size);
 
 int main(int argc, char *argv[]) {
   Flags flags = read_flags(argc, argv);
@@ -53,7 +56,7 @@ Flags read_flags(int argc, char *argv[]) {
     switch (opt) {
       case 'e':
         flags.regexp_flags |= REG_EXTENDED;
-        flags.pattern = optarg;
+        add_pattern(&flags, optarg);
         break;
       case 'i':
         flags.regexp_flags |= REG_ICASE;
@@ -88,7 +91,7 @@ Flags read_flags(int argc, char *argv[]) {
 
   // grep [OPTION...] ->PATTERNS<- [FILE...]
   if (flags.pattern == NULL) {
-    flags.pattern = argv[optind];
+    add_pattern(&flags, argv[optind]);
     optind++;
   }
 
@@ -101,12 +104,12 @@ void grep(int argc, char *argv[], Flags flags) {
     // aka -vol, then continue
     if (!flags.list_file_names) return;
 
-  char **pattern = &argv[1];
-  char **end = &argv[argc];
   regex_t regex;
+  char **start = argv + optind;
+  char **end = argv + argc;
   int file_count = 0;
 
-  if (flags.pattern == NULL) {
+  if (flags.pattern == NULL) {  //! either delete or handle somewhere else
     fprintf(stderr, "No pattern provided\n");
     exit(EXIT_FAILURE);
   }
@@ -114,17 +117,7 @@ void grep(int argc, char *argv[], Flags flags) {
     fprintf(stderr, "Failed to compile regular excretion");
     exit(EXIT_FAILURE);
   }
-
-  for (char **filename = pattern + 1 /*&argv[1]*/; filename != end;
-       filename++) {
-    if (**filename == '-') continue;
-    if (++file_count > 1) break;
-  }
-
-  for (char **filename = pattern + 1 /*&argv[1]*/; filename != end;
-       filename++) {
-    if (**filename == '-') continue;
-
+  for (char **filename = start; filename != end; filename++) {
     FILE *file = fopen(*filename, "rb");
     if (file == NULL) {
       if (!(flags.suppress_errors || flags.list_file_names)) perror(*filename);
@@ -151,6 +144,7 @@ void grep(int argc, char *argv[], Flags flags) {
   }
 
   regfree(&regex);
+  free(flags.pattern);
 }
 
 void output_matched_line(FILE *file, Flags flags, regex_t *regex,
@@ -255,16 +249,45 @@ void list_file_names(FILE *file, Flags flags, regex_t *regex, char *filename) {
   free(line);
 }
 
-char *concat(char *str1, const char *str2) {
-  char *result = malloc(strlen(str1) + strlen(str2) + 1);
-
-  if (result == NULL) {
-    perror("Failed to allocate memory");
-    exit(EXIT_FAILURE);
+void add_pattern(Flags *flags, char *pattern) {
+  if (flags->pattern == NULL) {
+    flags->pattern = xmalloc(strlen(pattern) + 1);
+    strcpy(flags->pattern, pattern);
+  } else {
+    flags->pattern =
+        realloc(flags->pattern, strlen(flags->pattern) + strlen(pattern) + 2);
+    sprintf(flags->pattern, "%s|%s", flags->pattern, pattern);
   }
+}
+
+char *concat(char *str1, const char *str2) {
+  char *result = xmalloc(strlen(str1) + strlen(str2) + 1);
 
   strcpy(result, str1);
   strcat(result, str2);
 
   return result;
+}
+
+void *xmalloc(size_t size) {
+  void *ptr = malloc(size);
+
+  if (ptr == NULL) {
+    perror("Memory allocation failed");
+    exit(EXIT_FAILURE);
+  }
+
+  return ptr;
+}
+
+void *xrealloc(void *ptr, size_t new_size) {
+  void *new_ptr = realloc(ptr, new_size);
+
+  if (new_ptr == NULL) {
+    perror("Memory reallocation failed");
+    free(ptr);
+    exit(EXIT_FAILURE);
+  }
+
+  return new_ptr;
 }
