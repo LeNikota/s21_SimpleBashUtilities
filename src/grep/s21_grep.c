@@ -125,33 +125,25 @@ void grep(int argc, char *argv[], Flags flags) {
       continue;
     }
 
-    // many files logic here
-    // char *new_filename = concat(*filename, new_filename);
-    // if (file_count == 1) {
+    char *new_filename = concat("", "");
+    if (file_count > 1) {
+      new_filename = concat(*filename, ":");
+    }
 
-    // }
-
-    // aka -vo, then do nothing
     if (flags.list_file_names) {
       list_file_names(file, flags, &regex, *filename);
+    } else if (flags.output_matched_part && flags.invert_match) {
+      // aka -vo, then do nothing
     } else if (flags.output_matched_part) {
-      output_matched_part(file, flags, &regex, *filename);
+      output_matched_part(file, flags, &regex, new_filename);
     } else if (flags.matched_lines_count) {
-      output_matched_lines_count(file, flags, &regex, *filename);
+      output_matched_lines_count(file, flags, &regex, new_filename);
     } else {
-      output_matched_line(file, flags, &regex, *filename);
+      output_matched_line(file, flags, &regex, new_filename);
     }
-    // if (file_count == 1) {
-    //   grep_file(file, flags, &regex, "");
-    // }
-    // else {
-
-    //   grep_file(file, flags, &regex, new_filename);
-
-    //   free(new_filename);
-    // }
 
     fclose(file);
+    free(new_filename);
   }
 
   regfree(&regex);
@@ -261,6 +253,12 @@ void list_file_names(FILE *file, Flags flags, regex_t *regex, char *filename) {
 
 char *concat(char *str1, const char *str2) {
   char *result = malloc(strlen(str1) + strlen(str2) + 1);
+
+  if (result == NULL) {
+    perror("Failed to allocate memory");
+    exit(EXIT_FAILURE);
+  }
+
   strcpy(result, str1);
   strcat(result, str2);
 
