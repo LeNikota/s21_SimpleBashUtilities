@@ -27,7 +27,7 @@ test:
 	./s21_grep  this  -l $(FILE) > s21_grep.txt && grep  this  -l $(FILE) > grep.txt && diff s21_grep.txt grep.txt
 	./s21_grep  this  -c $(FILE) > s21_grep.txt && grep  this  -c $(FILE) > grep.txt && diff s21_grep.txt grep.txt
 	./s21_grep -vo -c -f $(PATTERNS) $(FILE) > s21_grep.txt && grep -vo -c -f $(PATTERNS) $(FILE) > grep.txt && diff s21_grep.txt grep.txt
-	# ./s21_grep -vol -c -e 3456 -f $(PATTERNS) $(FILE) > s21_grep.txt && grep -vol -c -e 3456 $(FILE) > grep.txt && diff s21_grep.txt grep.txt
+	./s21_grep -vol -c -e 3456 -f $(PATTERNS) $(FILE) > s21_grep.txt && grep -vol -c -e 3456 $(FILE) > grep.txt && diff s21_grep.txt grep.txt
 	# ./s21_grep -c -e 3456 -f $(PATTERNS) $(FILE) > s21_grep.txt && grep -c -e 3456 $(FILE) > grep.txt && diff s21_grep.txt grep.txt
 	# ./s21_grep -n -e 3456 -f $(PATTERNS) $(FILE) > s21_grep.txt && grep -n -e 3456 $(FILE) > grep.txt && diff s21_grep.txt grep.txt
 	# ./s21_grep -nso -e 3456 -f $(PATTERNS) $(FILE) > s21_grep.txt && grep -nso -e 3456 $(FILE) > grep.txt && diff s21_grep.txt grep.txt

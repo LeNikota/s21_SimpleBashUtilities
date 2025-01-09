@@ -183,8 +183,7 @@ void process_file(FILE *file, Flags flags, regex_t *regex, char *filename) {
       printf("%s:", filename);
     }
     printf("%d\n", line_count);
-  }
-  if (flags.output_matched_part) {
+  } else if (flags.output_matched_part) {
     // List matched parts
     while ((read = getline(&line, &length, file)) > 0) {
       line_number++;
