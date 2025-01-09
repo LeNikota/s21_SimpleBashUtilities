@@ -1,0 +1,23 @@
+The Narrator
+Copy This is the story of a man named Stanley.
+voice_Intro_1_00	
+
+
+The Narrator
+Copy Stanley worked for a company in a big building where he was Employee Number 427.
+voice_Intro_1_01
+	
+
+The Narrator
+Copy Employee Number 427's job was simple.
+Copy He sat at his desk in Room 427, and he pushed buttons on a keyboard.
+voice_Intro_1_02
+
+
+... some time later ...
+
+
+The Narrator
+Copy And believe me, I will be laughing at every second of your inevitable life
+Copy from the moment we fade in, until the moment I say: 'Happily ever af-' 
+voice_Countdown_35

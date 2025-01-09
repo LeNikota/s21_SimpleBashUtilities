@@ -177,8 +177,6 @@ void cat_file(FILE *file, Flags flags, const char *table[static 256]) {
   (void)flags;
 
   while (fread(&c, sizeof(char), 1, file) > 0) {
-    // if (flags.number_nonblank)
-
     if (last == '\n') {
       newline_count++;
 
