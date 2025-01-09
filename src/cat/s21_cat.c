@@ -172,9 +172,8 @@ void cat(int argc, char *argv[], Flags flags, const char *table[static 256]) {
 void cat_file(FILE *file, Flags flags, const char *table[static 256]) {
   int c = 0;
   int last = '\n';
-  int newline_count = 0;
-  int line_number = 0;
-  (void)flags;
+  static int newline_count = 0;
+  static int line_number = 0;
 
   while (fread(&c, sizeof(char), 1, file) > 0) {
     if (last == '\n') {
