@@ -24,10 +24,13 @@ typedef struct Flags {
                             // unreadable files.
   int pattern_from_file;    // -f, file	Take regexes from a file.
   int output_matched_part;  // -o, Output the matched parts of a matching
-                            // line.
+  // line.
+
+  int many_files;  // To prefix output with filename when more than 1
 } Flags;
 
 Flags read_flags(int argc, char *argv[]);
+void count_entered_files(int argc, char *argv[], Flags *flags);
 void grep(int argc, char *argv[], Flags flags);
 void output_matched_line(FILE *file, Flags flags, regex_t *regex,
                          char *filename);
@@ -43,8 +46,14 @@ void *xmalloc(size_t size);
 void *xrealloc(void *ptr, size_t new_size);
 
 int main(int argc, char *argv[]) {
+  if (argc < 2) {
+    fprintf(stderr, "Usage: grep [OPTION]... PATTERNS [FILE]...\n");
+    exit(EXIT_FAILURE);
+  }
+
   Flags flags = read_flags(argc, argv);
 
+  count_entered_files(argc, argv, &flags);
   grep(argc, argv, flags);
 
   return 0;
@@ -105,6 +114,21 @@ Flags read_flags(int argc, char *argv[]) {
   return flags;
 }
 
+void count_entered_files(int argc, char *argv[], Flags *flags) {
+  char **start = argv + optind;
+  char **end = argv + argc;
+  int count = 0;
+
+  for (char **filename = start; filename != end; filename++) {
+    count++;
+
+    if (count > 1) {
+      flags->many_files = 1;
+      break;
+    }
+  }
+}
+
 void grep(int argc, char *argv[], Flags flags) {
   // aka -vo, then do nothing
   if (flags.output_matched_part && flags.invert_match)
@@ -114,16 +138,12 @@ void grep(int argc, char *argv[], Flags flags) {
   regex_t regex;
   char **start = argv + optind;
   char **end = argv + argc;
-  int file_count = 0;
 
-  if (flags.pattern == NULL) {  //! either delete or handle somewhere else
-    fprintf(stderr, "No pattern provided\n");
-    exit(EXIT_FAILURE);
-  }
   if (regcomp(&regex, flags.pattern, flags.regexp_flags)) {
     fprintf(stderr, "Failed to compile regular excretion");
     exit(EXIT_FAILURE);
   }
+
   for (char **filename = start; filename != end; filename++) {
     FILE *file = fopen(*filename, "rb");
     if (file == NULL) {
@@ -131,23 +151,17 @@ void grep(int argc, char *argv[], Flags flags) {
       continue;
     }
 
-    char *new_filename = concat("", "");
-    if (file_count > 1 && !flags.suppress_file_names) {
-      new_filename = concat(*filename, ":");
-    }
-
-    if (flags.list_file_names) {
-      list_file_names(file, flags, &regex, *filename);
-    } else if (flags.output_matched_part) {
-      output_matched_part(file, flags, &regex, new_filename);
-    } else if (flags.matched_lines_count) {
-      output_matched_lines_count(file, flags, &regex, new_filename);
-    } else {
-      output_matched_line(file, flags, &regex, new_filename);
-    }
+    // if (flags.list_file_names) {
+    //   list_file_names(file, flags, &regex, *filename);
+    // } else if (flags.output_matched_part) {
+    //   output_matched_part(file, flags, &regex, *filename);
+    // } else if (flags.matched_lines_count) {
+    //   output_matched_lines_count(file, flags, &regex, *filename);
+    // } else {
+    output_matched_line(file, flags, &regex, *filename);
+    // }
 
     fclose(file);
-    free(new_filename);
   }
 
   regfree(&regex);
@@ -160,26 +174,22 @@ void output_matched_line(FILE *file, Flags flags, regex_t *regex,
   size_t length = 0;
   ssize_t read;
   regmatch_t match;
-  int is_match = 0;
   int line_number = 0;
-  // log(2147483647) + 1 digit + : + \0
-  char *line_number_str = malloc(log10(INT_MAX) + 3);
-  strcpy(line_number_str, "");
+  int is_match = 0;
 
   if (flags.invert_match) is_match = REG_NOMATCH;
 
   while ((read = getline(&line, &length, file)) > 0) {
-    if (flags.lines_number) {
-      line_number++;
-      sprintf(line_number_str, "%d:", line_number);
-    }
+    line_number++;
 
-    if (regexec(regex, line, 1, &match, 0) == is_match)
-      printf("%s%s%s", filename, line_number_str, line);
+    if (regexec(regex, line, 1, &match, 0) == is_match) {
+      if (flags.many_files && !flags.suppress_file_names) printf("%s:", filename);
+      if (flags.lines_number) printf("%d:", line_number);
+      printf("%s", line);
+    }
   }
 
   free(line);
-  free(line_number_str);
 }
 void output_matched_part(FILE *file, Flags flags, regex_t *regex,
                          char *filename) {

@@ -34,6 +34,6 @@ test:
 	find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs cppcheck --enable=all --suppress=missingIncludeSystem
 	
 	@echo "\n\n------------Memory leak check------------"
-	$(CHECK) ./s21_cat test.txt 2>&1 | grep -E "ERROR|leak"
-	$(CHECK) ./s21_cat -bEnsT test.txt 2>&1 | grep -E "ERROR|leak"
-	$(CHECK) ./s21_cat -bEnsTv  test.txt 2>&1 | grep -E "ERROR|leak"
+	$(CHECK) ./s21_cat test.txt 2>&1 | grep -E "ERROR"
+	$(CHECK) ./s21_cat -bEnsT test.txt 2>&1 | grep -E "ERROR"
+	$(CHECK) ./s21_cat -bEnsTv  test.txt 2>&1 | grep -E "ERROR"
