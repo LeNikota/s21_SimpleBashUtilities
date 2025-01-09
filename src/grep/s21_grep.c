@@ -124,8 +124,8 @@ void count_entered_files(int argc, char *argv[], Flags *flags) {
 void grep(int argc, char *argv[], Flags flags) {
   // aka -vo, then do nothing
   if (flags.output_matched_part && flags.invert_match)
-    // aka -vol, then continue
-    if (!flags.list_file_names) return;
+    // aka -vol or -voc, then continue
+    if (!(flags.list_file_names || flags.matched_lines_count)) return;
 
   regex_t regex;
   char **start = argv + optind;
