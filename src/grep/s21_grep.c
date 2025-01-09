@@ -48,6 +48,7 @@ int main(int argc, char *argv[]) {
   count_entered_files(argc, argv, &flags);
   grep(argc, argv, flags);
 
+  free(flags.pattern);
   return 0;
 }
 
@@ -149,7 +150,6 @@ void grep(int argc, char *argv[], Flags flags) {
   }
 
   regfree(&regex);
-  free(flags.pattern);
 }
 
 void process_file(FILE *file, Flags flags, regex_t *regex, char *filename) {
