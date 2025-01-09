@@ -18,9 +18,9 @@ test:
 	clear
 	@echo "------------Diff------------"
 	./s21_grep  this  $(FILE) > s21_grep.txt && grep  this  $(FILE) > grep.txt && diff s21_grep.txt grep.txt
-	# ./s21_grep  this  -n $(FILE) > s21_grep.txt && grep  this  -n $(FILE) > grep.txt && diff s21_grep.txt grep.txt
-	# ./s21_grep  this  -v $(FILE) > s21_grep.txt && grep  this  -v $(FILE) > grep.txt && diff s21_grep.txt grep.txt
-	# ./s21_grep  this  -nv $(FILE) > s21_grep.txt && grep  this  -nv $(FILE) > grep.txt && diff s21_grep.txt grep.txt
+	./s21_grep  this  -n $(FILE) > s21_grep.txt && grep  this  -n $(FILE) > grep.txt && diff s21_grep.txt grep.txt
+	./s21_grep  this  -v $(FILE) > s21_grep.txt && grep  this  -v $(FILE) > grep.txt && diff s21_grep.txt grep.txt
+	./s21_grep  this  -nv $(FILE) > s21_grep.txt && grep  this  -nv $(FILE) > grep.txt && diff s21_grep.txt grep.txt
 	# ./s21_grep  this  -nvs $(FILE) lol.txt > s21_grep.txt && grep  this  -nvs $(FILE) lol.txt > grep.txt && diff s21_grep.txt grep.txt
 	# ./s21_grep  this  -o $(FILE) lol.txt > s21_grep.txt && grep  this  -o $(FILE) lol.txt > grep.txt && diff s21_grep.txt grep.txt
 	# ./s21_grep  this  -nso $(FILE) lol.txt > s21_grep.txt && grep  this  -nso $(FILE) lol.txt > grep.txt && diff s21_grep.txt grep.txt
