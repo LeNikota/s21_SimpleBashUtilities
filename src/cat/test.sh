@@ -2,8 +2,8 @@
 
 flags=("-b" "-E" "-n" "-s" "-T" "-v" "--number-nonblank" "--show-ends" "--number" "--squeeze-blank" "--show-tabs" "--show-nonprinting")
 
-if [[ ! -f test1.txt && ! -f test2.txt && ! -f test3.txt]]; then
-    git checkout HEAD^ test1.txt test2.txt test3.txt pattern.txt
+if [[ ! -f test1.txt && ! -f test2.txt && ! -f test3.txt ]]; then
+    git checkout HEAD^ test1.txt test2.txt test3.txt
 fi
 
 check_leaks() {
@@ -17,10 +17,10 @@ check_leaks() {
 check_diff() {
     local combination="$1"
     local files="$2"
-    echo "$combination $files"
     output=$(diff <(cat $combination $files) <(./s21_cat $combination $files))
 
     if [ -n "$output" ]; then
+        echo "$combination $files"
         echo "Differences found for combination: $combination"
         echo "$output"
     fi

@@ -148,6 +148,8 @@ void grep(int argc, char *argv[], Flags flags) {
 
     fclose(file);
   }
+
+  regfree(&regex);
 }
 
 void process_file(FILE *file, Flags flags, regex_t *regex, char *filename) {

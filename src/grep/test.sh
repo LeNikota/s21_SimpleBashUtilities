@@ -23,6 +23,7 @@ check_diff() {
     output=$(diff <(grep $combination $files) <(./s21_grep $combination $files))
 
     if [ -n "$output" ]; then
+        echo "$combination $files"
         echo "Differences found for combination: $combination $files"
         echo "$output"
     fi
@@ -44,37 +45,37 @@ generate_combinations() {
 
 
 
-# echo "------------Diff------------"
-# generate_combinations "" 0 ${#flags[@]} flags[@] "test1.txt"
-# generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt"
-# for ((j=1; j<${#flags[@]}; j++)); do
-#     generate_combinations "${flags[j]}" 0 ${#flags[@]} flags[@] "test1.txt"
-#     generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt"
-# done
+echo "------------Diff------------"
+generate_combinations "" 0 ${#flags[@]} flags[@] "test1.txt"
+generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt"
+for ((j=1; j<${#flags[@]}; j++)); do
+    generate_combinations "${flags[j]}" 0 ${#flags[@]} flags[@] "test1.txt"
+    generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt"
+done
 
-# generate_combinations "" 0 ${#flags[@]} flags[@] "test1.txt test2.txt"
-# generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt test2.txt"
-# for ((j=1; j<${#flags[@]}; j++)); do
-#     generate_combinations "${flags[j]}" 0 ${#flags[@]} flags[@] "test1.txt test2.txt"
-#     generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt test2.txt"
-# done
+generate_combinations "" 0 ${#flags[@]} flags[@] "test1.txt test2.txt"
+generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt test2.txt"
+for ((j=1; j<${#flags[@]}; j++)); do
+    generate_combinations "${flags[j]}" 0 ${#flags[@]} flags[@] "test1.txt test2.txt"
+    generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt test2.txt"
+done
 
-# generate_combinations "" 0 ${#flags[@]} flags[@] "test1.txt test2.txt test3.txt"
-# generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt test2.txt test3.txt"
-# for ((j=1; j<${#flags[@]}; j++)); do
-#     generate_combinations "${flags[j]}" 0 ${#flags[@]} flags[@] "test1.txt test2.txt test3.txt"
-#     generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt test2.txt test3.txt"
-# done
-
-
+generate_combinations "" 0 ${#flags[@]} flags[@] "test1.txt test2.txt test3.txt"
+generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt test2.txt test3.txt"
+for ((j=1; j<${#flags[@]}; j++)); do
+    generate_combinations "${flags[j]}" 0 ${#flags[@]} flags[@] "test1.txt test2.txt test3.txt"
+    generate_combinations "" 0 ${#flags_without_ef[@]} flags_without_ef[@] "test1.txt test2.txt test3.txt"
+done
 
 
-# echo
-# echo
-# echo
-# echo "------------Static check------------"
-# find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs clang-format -n
-# find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs cppcheck --enable=all --suppress=missingIncludeSystem
+
+
+echo
+echo
+echo
+echo "------------Static check------------"
+find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs clang-format -n
+find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs cppcheck --enable=all --suppress=missingIncludeSystem
 
 
 echo
