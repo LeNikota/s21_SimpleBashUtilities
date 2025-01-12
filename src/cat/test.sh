@@ -2,18 +2,22 @@
 
 flags=("-b" "-E" "-n" "-s" "-T" "-v" "--number-nonblank" "--show-ends" "--number" "--squeeze-blank" "--show-tabs" "--show-nonprinting")
 
+if [[ ! -f test1.txt && ! -f test2.txt && ! -f test3.txt]]; then
+    git checkout HEAD^ test1.txt test2.txt test3.txt pattern.txt
+fi
 
 check_leaks() {
     local flags="$1"
     local files="$2"
 
-    echo ./s21_cat $flags $files $(valgrind --tool=memcheck --leak-check=yes --leak-check=full --show-leak-kinds=all ./s21_cat 2>&1 | grep -E "ERROR")
+    echo ./s21_cat $flags $files
+    valgrind --tool=memcheck --leak-check=yes --leak-check=full --show-leak-kinds=all ./s21_cat $flags $files 2>&1 | grep -E "ERROR"
 }
 
 check_diff() {
     local combination="$1"
     local files="$2"
-    echo "Checking combination: $combination on file: $files"
+    echo "$combination $files"
     output=$(diff <(cat $combination $files) <(./s21_cat $combination $files))
 
     if [ -n "$output" ]; then
@@ -67,11 +71,21 @@ echo
 echo
 echo
 echo "------------Memory leak check------------"
-check_leaks test.txt
-check_leaks -b test.txt
-check_leaks -n test.txt
-check_leaks -s test.txt
-check_leaks -et test.txt
-check_leaks -ET test.txt
-check_leaks -bEnsT test.txt
-check_leaks -bEnsTv  test.txt
+check_leaks "test1.txt"
+check_leaks -b "test1.txt"
+check_leaks -n "test1.txt"
+check_leaks -s "test1.txt"
+check_leaks -bEnsT "test1.txt"
+check_leaks -bEnsTv  "test1.txt"
+check_leaks "test1.txt test2.txt"
+check_leaks -b "test1.txt test2.txt"
+check_leaks -n "test1.txt test2.txt"
+check_leaks -s "test1.txt test2.txt"
+check_leaks -bEnsT "test1.txt test2.txt"
+check_leaks -bEnsTv  "test1.txt test2.txt"
+check_leaks "test1.txt test2.txt test3.txt"
+check_leaks -b "test1.txt test2.txt test3.txt"
+check_leaks -n "test1.txt test2.txt test3.txt"
+check_leaks -s "test1.txt test2.txt test3.txt"
+check_leaks -bEnsT "test1.txt test2.txt test3.txt"
+check_leaks -bEnsTv  "test1.txt test2.txt test3.txt"

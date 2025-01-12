@@ -148,8 +148,6 @@ void grep(int argc, char *argv[], Flags flags) {
 
     fclose(file);
   }
-
-  regfree(&regex);
 }
 
 void process_file(FILE *file, Flags flags, regex_t *regex, char *filename) {
@@ -198,7 +196,8 @@ void process_file(FILE *file, Flags flags, regex_t *regex, char *filename) {
           printf("%d:", line_number);
         }
 
-        printf("%.*s\n", match.rm_eo - match.rm_so, remaining + match.rm_so);
+        printf("%.*s\n", (int)(match.rm_eo - match.rm_so),
+               remaining + match.rm_so);
 
         remaining += match.rm_eo;
       }
@@ -217,6 +216,9 @@ void process_file(FILE *file, Flags flags, regex_t *regex, char *filename) {
         }
 
         printf("%s", line);
+
+        // In case if a file end doesn't have the '\n'
+        if (line[read - 1] != '\n') printf("\n");
       }
     }
   }
