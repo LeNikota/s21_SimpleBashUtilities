@@ -39,8 +39,11 @@ int main(int argc, char *argv[]) {
 void read_flags(int argc, char *argv[], Flags *flags) {
   int opt;
   struct option long_options[] = {{"number-nonblank", no_argument, NULL, 'b'},
+                                  {"show-ends", no_argument, NULL, 'E'},
                                   {"number", no_argument, NULL, 'n'},
                                   {"squeeze-blank", no_argument, NULL, 's'},
+                                  {"show-tabs", no_argument, NULL, 'T'},
+                                  {"show-nonprinting", no_argument, NULL, 'v'},
                                   {0, 0, 0, 0}};
 
   flags->number_nonblank = 0;

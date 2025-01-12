@@ -13,21 +13,10 @@ clean:
 format:
 	@find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs clang-format -i
 
-test:
+test: all
 	clear
 	@echo "------------Diff------------"
-	./s21_cat $(FILE) > s21_cat.txt && cat $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	./s21_cat -b $(FILE) > s21_cat.txt && cat -b $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	./s21_cat -e $(FILE) > s21_cat.txt && cat -e $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	./s21_cat -E $(FILE) > s21_cat.txt && cat -E $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	./s21_cat -t $(FILE) > s21_cat.txt && cat -t $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	./s21_cat -T $(FILE) > s21_cat.txt && cat -T $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	./s21_cat -v $(FILE) > s21_cat.txt && cat -v $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	./s21_cat -s $(FILE) > s21_cat.txt && cat -s $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	./s21_cat -n $(FILE) > s21_cat.txt && cat -n $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	./s21_cat -bnsTE $(FILE) > s21_cat.txt && cat -bnsTE $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	./s21_cat -bnsTEv $(FILE) > s21_cat.txt && cat -bnsTEv $(FILE) > cat.txt && diff s21_cat.txt cat.txt
-	@rm -f s21_cat.txt cat.txt
+	bash test.sh
 
 	@echo "\n\n------------Static check------------"
 	find $(git rev-parse --show-toplevel) \( -name "*.c" -o -name "*.h" \) | xargs clang-format -n
